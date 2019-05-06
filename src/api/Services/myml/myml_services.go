@@ -75,7 +75,7 @@ func GetUserFromApi(userID int64) (*myml.User, *apierrors.ApiError) {
 func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiError) {
 
 	var respuesta myml.JsonSuma
-	//var c chan bool
+	var cE chan *apierrors.ApiError
 	var wg sync.WaitGroup
 
 	user := &myml.User{ID: int(userID)}
@@ -87,18 +87,36 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 			Status:  http.StatusInternalServerError,
 		}
 	}
-
-	wg.Add(2)
+	wg.Add(3)
 	go func() {
-		respuesta.Site.Get(user.SiteID)
+		err = <-cE
+		wg.Done()
+	}()
+	if err != nil {
+		return nil, &apierrors.ApiError{
+			Message: err.Message,
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	go func() {
+		err := respuesta.Site.Get(user.SiteID)
+		cE<-err
 		wg.Done()
 	}()
 	go func() {
-		respuesta.Category.Get(user.SiteID)
+		err := respuesta.Category.Get(user.SiteID)
+		cE<-err
 		wg.Done()
 	}()
-
 	wg.Wait()
+
+	if err != nil {
+		return nil, &apierrors.ApiError{
+			Message: err.Message,
+			Status:  http.StatusInternalServerError,
+		}
+	}
 
 	return &respuesta, nil
 }
