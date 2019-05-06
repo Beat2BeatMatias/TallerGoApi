@@ -10,10 +10,10 @@ import (
 
 const urlSites = "https://api.mercadolibre.com/sites/"
 
-func (category *Category) Get(siteID int64) *apierrors.ApiError {
+func (category *Category) Get(siteID string) *apierrors.ApiError {
 	var data []byte
 
-	final := fmt.Sprintf("%s%d/categories", urlSites, siteID )
+	final := fmt.Sprintf("%s%s/categories", urlSites, siteID )
 	response, err := http.Get(final)
 	if err != nil {
 		return &apierrors.ApiError{

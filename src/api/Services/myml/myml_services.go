@@ -7,6 +7,7 @@ import (
 	"github.com/mercadolibre/taller-go/src/api/Utils/apierrors"
 	"io/ioutil"
 	"net/http"
+	"sync"
 )
 
 func GetUser(url string) myml.User {
@@ -74,11 +75,12 @@ func GetUserFromApi(userID int64) (*myml.User, *apierrors.ApiError) {
 func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiError) {
 
 	var respuesta myml.JsonSuma
-	var c chan myml.JsonSuma
-	//var wg sync.WaitGroup
+	//var c chan bool
+	var wg sync.WaitGroup
 
 	user := &myml.User{ID: int(userID)}
 	err := user.Get()
+	respuesta.User=*user
 	if err != nil {
 		return nil, &apierrors.ApiError{
 			Message: err.Message,
@@ -86,18 +88,17 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 		}
 	}
 
-
-
+	wg.Add(2)
 	go func() {
-		respuesta.Site.Get(userID)
-		c<-respuesta
+		respuesta.Site.Get(user.SiteID)
+		wg.Done()
 	}()
 	go func() {
-		respuesta.Category.Get(userID)
-		c<-respuesta
+		respuesta.Category.Get(user.SiteID)
+		wg.Done()
 	}()
 
-	respuesta=<-c
+	wg.Wait()
 
 	return &respuesta, nil
 }

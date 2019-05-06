@@ -8,11 +8,11 @@ import (
 	"net/http"
 )
 
-func (site *Site) Get(siteID int64) *apierrors.ApiError {
+func (site *Site) Get(siteID string) *apierrors.ApiError {
 
 	var data []byte
 
-	final := fmt.Sprintf("%s%d", urlSites, siteID)
+	final := fmt.Sprintf("%s%s", urlSites, siteID)
 	response, err := http.Get(final)
 	if err != nil {
 		return &apierrors.ApiError{
