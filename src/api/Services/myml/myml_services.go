@@ -71,94 +71,33 @@ func GetUserFromApi(userID int64) (*myml.User, *apierrors.ApiError) {
 	return &user, nil
 }
 
-func GetUserFromApiReceiver(userID int64) (*myml.User, *apierrors.ApiError) {
+func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiError) {
+
+	var respuesta myml.JsonSuma
+	var c chan myml.JsonSuma
+	//var wg sync.WaitGroup
 
 	user := &myml.User{ID: int(userID)}
 	err := user.Get()
 	if err != nil {
-		return user, &apierrors.ApiError{
+		return nil, &apierrors.ApiError{
 			Message: err.Message,
 			Status:  http.StatusInternalServerError,
 		}
 	}
-	return user, nil
-}
 
-const urlSites = "https://api.mercadolibre.com/sites/"
 
-func GetSiteApi(siteID string, c chan myml.Site, cE chan *apierrors.ApiError) {
-	var data []byte
-	var site myml.Site
 
-	if siteID == "" {
-		cE<-&apierrors.ApiError{
-			Message: "UserID is empty",
-			Status:  http.StatusInternalServerError,
-		}
-	}
+	go func() {
+		respuesta.Site.Get(userID)
+		c<-respuesta
+	}()
+	go func() {
+		respuesta.Category.Get(userID)
+		c<-respuesta
+	}()
 
-	final := fmt.Sprintf("%s%s", urlSites, siteID )
-	response, err := http.Get(final)
-	if err != nil {
-		cE<-&apierrors.ApiError{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		}
-	}
+	respuesta=<-c
 
-	data, err = ioutil.ReadAll(response.Body)
-	println(string(data))
-	if err != nil {
-		cE<-&apierrors.ApiError{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		}
-	}
-
-	if err := json.Unmarshal(data, &site); err != nil {
-		cE<-&apierrors.ApiError{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		}
-	}
-	c<-site
-	cE<-nil
-}
-func GetCategoryApi(siteID string, c chan myml.Category, cE chan *apierrors.ApiError) {
-	var data []byte
-	var category myml.Category
-
-	if siteID == "" {
-		cE<-&apierrors.ApiError{
-			Message: "UserID is empty",
-			Status:  http.StatusInternalServerError,
-		}
-	}
-
-	final := fmt.Sprintf("%s%s/categories", urlSites, siteID )
-	response, err := http.Get(final)
-	if err != nil {
-		cE<-&apierrors.ApiError{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		}
-	}
-
-	data, err = ioutil.ReadAll(response.Body)
-	println(string(data))
-	if err != nil {
-		cE<-&apierrors.ApiError{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		}
-	}
-
-	if err := json.Unmarshal(data, &category); err != nil {
-		cE<-&apierrors.ApiError{
-			Message: err.Error(),
-			Status:  http.StatusInternalServerError,
-		}
-	}
-	c<-category
-	cE<-nil
+	return &respuesta, nil
 }

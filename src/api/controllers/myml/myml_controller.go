@@ -2,15 +2,11 @@ package myml
 
 import (
 	"encoding/json"
-	myml2 "github.com/mercadolibre/taller-go/src/api/Domain/myml"
+	"github.com/gin-gonic/gin"
+	"github.com/mercadolibre/taller-go/src/api/Services/myml"
 	"github.com/mercadolibre/taller-go/src/api/Utils/apierrors"
 	"net/http"
 	"strconv"
-	"sync"
-
-	"github.com/gin-gonic/gin"
-	"github.com/mercadolibre/taller-go/src/api/Services/myml"
-
 )
 
 const (
@@ -55,6 +51,8 @@ func GetUserData(context *gin.Context){
 	}
 	context.JSON(http.StatusOK,user)
 }
+
+
 func GetUserDataReceiver(context *gin.Context){
 	userID := context.Param(paramUserID)
 	id, err := strconv.ParseInt(userID,10,64)
@@ -67,44 +65,11 @@ func GetUserDataReceiver(context *gin.Context){
 		return
 	}
 
-	cSite := make(chan myml2.Site)
-	cCategory := make(chan myml2.Category)
-	cError := make(chan *apierrors.ApiError)
-
-	user, apiErr := myml.GetUserFromApiReceiver(id)
+	respuesta, apiErr := myml.GetRespuestaFromApiReceiver(id)
 	if apiErr != nil{
 		context.JSON(apiErr.Status,apiErr)
 		return
 	}
 
-	var site myml2.Site
-	var category myml2.Category
-	var errorR *apierrors.ApiError
-
-	var wg sync.WaitGroup
-
-	wg.Add(3)
-	go func() {
-		site=<-cSite
-		wg.Done()
-		category=<-cCategory
-		wg.Done()
-		errorR=<-cError
-		wg.Done()
-
-	}()
-	go func() {myml.GetSiteApi(user.SiteID,cSite,cError)}()
-	go func() {myml.GetCategoryApi(user.SiteID,cCategory,cError)}()
-	wg.Wait()
-
-	if errorR != nil {
-		context.JSON(errorR.Status,errorR)
-		return
-	}
-	jsonTotal:=myml2.JsonSuma{
-		User:*user,
-		Site:site,
-		Category:category,
-	}
-	context.JSON(http.StatusOK,jsonTotal)
+	context.JSON(http.StatusOK,respuesta)
 }
