@@ -90,22 +90,18 @@ func GetUserDataReceiver(context *gin.Context){
 	go func() {myml.GetSiteApi(user.SiteID,cSite,cError)}()
 	go func() {myml.GetCategoryApi(user.SiteID,cCategory,cError)}()
 
-	FOR:
-	for {
-		// Wait for a communication
-		select {
 
-		case <- time.After(300 * time.Millisecond):
+	select {
+
+		case <- time.After(500 * time.Millisecond):
 			errorR=&apierrors.ApiError{
 				Message:"Superó el tiempo de respuesta",
 				Status:http.StatusInternalServerError,
 			}
-			break FOR
-
 		case <-cOk:
-			break FOR
+
 		}
-	}
+
 
 	if errorR != nil {
 		context.JSON(errorR.Status,errorR)
