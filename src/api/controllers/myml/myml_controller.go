@@ -2,15 +2,13 @@ package myml
 
 import (
 	"encoding/json"
+	"github.com/gin-gonic/gin"
 	myml2 "github.com/mercadolibre/taller-go/src/api/Domain/myml"
+	"github.com/mercadolibre/taller-go/src/api/Services/myml"
 	"github.com/mercadolibre/taller-go/src/api/Utils/apierrors"
 	"net/http"
 	"strconv"
-	"sync"
-
-	"github.com/gin-gonic/gin"
-	"github.com/mercadolibre/taller-go/src/api/Services/myml"
-
+	"time"
 )
 
 const (
@@ -70,32 +68,44 @@ func GetUserDataReceiver(context *gin.Context){
 	cSite := make(chan myml2.Site)
 	cCategory := make(chan myml2.Category)
 	cError := make(chan *apierrors.ApiError)
+	cOk := make(chan bool)
 
 	user, apiErr := myml.GetUserFromApiReceiver(id)
 	if apiErr != nil{
 		context.JSON(apiErr.Status,apiErr)
 		return
 	}
-
+	//152581223
 	var site myml2.Site
 	var category myml2.Category
 	var errorR *apierrors.ApiError
 
-	var wg sync.WaitGroup
-
-	wg.Add(3)
 	go func() {
 		site=<-cSite
-		wg.Done()
 		category=<-cCategory
-		wg.Done()
 		errorR=<-cError
-		wg.Done()
-
+		cOk<-true
 	}()
+
 	go func() {myml.GetSiteApi(user.SiteID,cSite,cError)}()
 	go func() {myml.GetCategoryApi(user.SiteID,cCategory,cError)}()
-	wg.Wait()
+
+	FOR:
+	for {
+		// Wait for a communication
+		select {
+
+		case <- time.After(300 * time.Millisecond):
+			errorR=&apierrors.ApiError{
+				Message:"Superó el tiempo de respuesta",
+				Status:http.StatusInternalServerError,
+			}
+			break FOR
+
+		case <-cOk:
+			break FOR
+		}
+	}
 
 	if errorR != nil {
 		context.JSON(errorR.Status,errorR)
