@@ -1,4 +1,4 @@
-package myml
+package external_api
 
 type Site struct {
 	ID                 string   `json:"id"`

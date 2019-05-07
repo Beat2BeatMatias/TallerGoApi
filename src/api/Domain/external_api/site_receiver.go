@@ -1,4 +1,4 @@
-package myml
+package external_api
 
 import (
 	"encoding/json"

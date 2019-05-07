@@ -1,6 +1,7 @@
 package myml
 
 import (
+	"github.com/mercadolibre/taller-go/src/api/Domain/external_api"
 	"github.com/mercadolibre/taller-go/src/api/Domain/myml"
 	"github.com/mercadolibre/taller-go/src/api/Utils/apierrors"
 	"sync"
@@ -12,7 +13,7 @@ func TestGetRespuestaFromApiReceiver(t *testing.T) {
 	var wg sync.WaitGroup
 	cE := make(chan *apierrors.ApiError)
 
-	user := &myml.User{ID: 12345678}
+	user := &external_api.User{ID: 12345678}
 	err := user.Get()
 	if err != nil{
 		t.Error("No pudo conectarse. No se espera este error")
@@ -42,7 +43,7 @@ func TestGetRespuestaFromApiReceiver(t *testing.T) {
 	}
 }
 func TestGetRespuestaFromApiReceiverNil(t *testing.T) {
-	user := &myml.User{SiteID:"dkajsdjk"}
+	user := &external_api.User{SiteID: "dkajsdjk"}
 	err := user.Get()
 	if err == nil{
 		t.Error("No pudo conectarse. Se espera este error")

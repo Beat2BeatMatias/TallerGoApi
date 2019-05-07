@@ -1,4 +1,4 @@
-package myml
+package external_api
 
 import (
 	"encoding/json"
@@ -8,12 +8,21 @@ import (
 	"net/http"
 )
 
-const urlSites = "https://api.mercadolibre.com/sites/"
+const (
+	url = "https://api.mercadolibre.com/users/"
+)
 
-func (category *Category) Get(siteID string) *apierrors.ApiError {
+func (user *User) Get() *apierrors.ApiError {
 	var data []byte
 
-	final := fmt.Sprintf("%s%s/categories", urlSites, siteID)
+	if user.ID == 0 {
+		return &apierrors.ApiError{
+			Message: "UserID is empty",
+			Status:  http.StatusInternalServerError,
+		}
+	}
+
+	final := fmt.Sprintf("%s%d", url, user.ID)
 	response, err := http.Get(final)
 	if err != nil {
 		return &apierrors.ApiError{
@@ -23,7 +32,6 @@ func (category *Category) Get(siteID string) *apierrors.ApiError {
 	}
 
 	data, err = ioutil.ReadAll(response.Body)
-	println(string(data))
 	if err != nil {
 		return &apierrors.ApiError{
 			Message: err.Error(),
@@ -31,7 +39,7 @@ func (category *Category) Get(siteID string) *apierrors.ApiError {
 		}
 	}
 
-	if err := json.Unmarshal(data, &category); err != nil {
+	if err := json.Unmarshal(data, &user); err != nil {
 		return &apierrors.ApiError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,

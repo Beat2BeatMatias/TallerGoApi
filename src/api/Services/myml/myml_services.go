@@ -1,6 +1,7 @@
 package myml
 
 import (
+	"github.com/mercadolibre/taller-go/src/api/Domain/external_api"
 	"github.com/mercadolibre/taller-go/src/api/Domain/myml"
 	"github.com/mercadolibre/taller-go/src/api/Utils/apierrors"
 	"net/http"
@@ -12,8 +13,9 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 	var respuesta myml.JsonSuma
 	var wg sync.WaitGroup
 	cE := make(chan *apierrors.ApiError)
+	c := make(chan myml.JsonSuma)
 
-	user := &myml.User{ID: int(userID)}
+	user := &external_api.User{ID: int(userID)}
 	err := user.Get()
 	respuesta.User = *user
 	if err != nil {
@@ -24,7 +26,6 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 	}
 
 	wg.Add(1)
-
 	go func() {
 		err = <-cE
 		wg.Done()
@@ -38,7 +39,6 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 		err = respuesta.Category.Get(user.SiteID)
 		cE <- err
 	}()
-
 	wg.Wait()
 
 	if err != nil {

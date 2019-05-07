@@ -1,4 +1,4 @@
-package myml
+package external_api
 
 type User struct {
 	ID               int    `json:"id"`

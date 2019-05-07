@@ -1,7 +1,9 @@
 package myml
 
+import "github.com/mercadolibre/taller-go/src/api/Domain/external_api"
+
 type JsonSuma struct {
-	User User
-	Site Site
-	Category Category
+	User     external_api.User
+	Site     external_api.Site
+	Category external_api.Category
 }
