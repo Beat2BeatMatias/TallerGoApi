@@ -44,7 +44,6 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 		wg.Done()
 	}()
 	go func() {
-		defer wg.Done()
 		err = category.Get(user.SiteID)
 		c<-myml.JsonSuma{Category:category}
 		cE <- err
