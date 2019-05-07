@@ -31,23 +31,22 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 	wg.Add(3)
 	go func() {
 		respuesta=<-c
+		wg.Done()
 		respuesta=<-c
+		wg.Done()
 		respuesta.User=user
 		err = <-cE
 		wg.Done()
 	}()
-
 	go func() {
 		err = site.Get(user.SiteID)
 		c<-myml.JsonSuma{Site:site}
 		cE <- err
-		wg.Done()
 	}()
 	go func() {
 		err = category.Get(user.SiteID)
 		c<-myml.JsonSuma{Category:category}
 		cE <- err
-		wg.Done()
 	}()
 	wg.Wait()
 
