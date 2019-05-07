@@ -5,19 +5,18 @@ import (
 	"github.com/mercadolibre/taller-go/src/api/Domain/myml"
 	"github.com/mercadolibre/taller-go/src/api/Utils/apierrors"
 	"net/http"
-	"sync"
 )
 
 func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiError) {
 
 	var respuesta myml.JsonSuma
-	var wg sync.WaitGroup
 
 	site := external_api.Site{}
 	category := external_api.Category{}
 
-	cE := make(chan *apierrors.ApiError)
+	cE := make(chan apierrors.ApiError)
 	c := make(chan myml.JsonSuma)
+	cOk := make(chan bool)
 
 	user := external_api.User{ID: int(userID)}
 	err := user.Get()
@@ -28,33 +27,30 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 		}
 	}
 
-	wg.Add(3)
 	go func() {
 		respuesta=<-c
-		wg.Done()
 		respuesta=<-c
-		wg.Done()
 		respuesta.User=user
-		err = <-cE
-		wg.Done()
+		cOk<-true
 	}()
-	go func() {
-		err = site.Get(user.SiteID)
-		c<-myml.JsonSuma{Site:site}
-		cE <- err
-	}()
-	go func() {
-		err = category.Get(user.SiteID)
-		c<-myml.JsonSuma{Category:category}
-		cE <- err
-	}()
-	wg.Wait()
 
-	if err != nil {
-		return nil, &apierrors.ApiError{
-			Message: err.Message,
-			Status:  http.StatusInternalServerError,
-		}
+	go func() {
+		site.Get(user.SiteID,cE)
+		c<-myml.JsonSuma{Site:site}
+
+	}()
+	go func() {
+		category.Get(user.SiteID,cE)
+		c<-myml.JsonSuma{Category:category}
+	}()
+
+	select {
+
+		case err := <- cE:
+			return nil, &err
+
+		case <- cOk:
+
 	}
 
 	return &respuesta, nil

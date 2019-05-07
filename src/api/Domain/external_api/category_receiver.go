@@ -10,13 +10,13 @@ import (
 
 const urlSites = "https://api.mercadolibre.com/sites/"
 
-func (category *Category) Get(siteID string) *apierrors.ApiError {
+func (category *Category) Get(siteID string, c chan apierrors.ApiError){
 	var data []byte
 
 	final := fmt.Sprintf("%s%s/categories", urlSites, siteID)
 	response, err := http.Get(final)
 	if err != nil {
-		return &apierrors.ApiError{
+		c<-apierrors.ApiError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
@@ -25,17 +25,16 @@ func (category *Category) Get(siteID string) *apierrors.ApiError {
 	data, err = ioutil.ReadAll(response.Body)
 	println(string(data))
 	if err != nil {
-		return &apierrors.ApiError{
+		c<-apierrors.ApiError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
 
 	if err := json.Unmarshal(data, &category); err != nil {
-		return &apierrors.ApiError{
+		c<-apierrors.ApiError{
 			Message: err.Error(),
 			Status:  http.StatusInternalServerError,
 		}
 	}
-	return nil
 }
