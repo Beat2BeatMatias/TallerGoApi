@@ -48,14 +48,3 @@ func TestGetRespuestaFromApiReceiverNil(t *testing.T) {
 		t.Error("No pudo conectarse. Se espera este error")
 	}
 }
-
-//func TestAcumularListaNula(t *testing.T) {
-//	err := Acumular(nil)
-//	if err == nil{
-//		t.Error("Se esperaba un error")
-//	}
-//	errorEsperado := "La lista está vacía"
-//	if err.Error() != errorEsperado {
-//		t.Error(fmt.Sprintf("Mensaje de error esperado %s, mensaje de error recibido %s", errorEsperado, err.Error()))
-//	}
-//}
