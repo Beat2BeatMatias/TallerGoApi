@@ -76,7 +76,7 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 
 	var respuesta myml.JsonSuma
 	var wg sync.WaitGroup
-	cE:=make(chan *apierrors.ApiError)
+	cE := make(chan *apierrors.ApiError)
 
 	user := &myml.User{ID: int(userID)}
 	err := user.Get()
@@ -112,7 +112,6 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 			Status:  http.StatusInternalServerError,
 		}
 	}
-
 
 	return &respuesta, nil
 }
