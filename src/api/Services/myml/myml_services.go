@@ -18,7 +18,7 @@ func GetUser(url string) myml.User {
 	var user myml.User
 
 	if err != nil {
-		fmt.Println("Ocurrió un error %s\n", err)
+		fmt.Printf("Ocurrió un error %s\n", err)
 	} else {
 		data, _ = ioutil.ReadAll(response.Body)
 		//fmt.Println(string(data))
