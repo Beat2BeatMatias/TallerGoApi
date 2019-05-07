@@ -12,12 +12,15 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 
 	var respuesta myml.JsonSuma
 	var wg sync.WaitGroup
+
+	site := external_api.Site{}
+	category := external_api.Category{}
+
 	cE := make(chan *apierrors.ApiError)
 	c := make(chan myml.JsonSuma)
 
-	user := &external_api.User{ID: int(userID)}
+	user := external_api.User{ID: int(userID)}
 	err := user.Get()
-	respuesta.User = *user
 	if err != nil {
 		return nil, &apierrors.ApiError{
 			Message: err.Message,
@@ -25,19 +28,27 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 		}
 	}
 
-	wg.Add(1)
+	wg.Add(3)
 	go func() {
+		respuesta=<-c
+		respuesta=<-c
+		respuesta.User=user
 		err = <-cE
 		wg.Done()
 	}()
 
 	go func() {
-		err = respuesta.Site.Get(user.SiteID)
+		err = site.Get(user.SiteID)
+		c<-myml.JsonSuma{Site:site}
 		cE <- err
+		wg.Done()
 	}()
 	go func() {
-		err = respuesta.Category.Get(user.SiteID)
+		defer wg.Done()
+		err = category.Get(user.SiteID)
+		c<-myml.JsonSuma{Category:category}
 		cE <- err
+		wg.Done()
 	}()
 	wg.Wait()
 
