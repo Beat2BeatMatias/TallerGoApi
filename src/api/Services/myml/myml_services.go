@@ -9,10 +9,11 @@ import (
 
 func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiError) {
 
+	var respuestaTemp myml.JsonSuma
 	var respuesta myml.JsonSuma
 
-	site := external_api.Site{}
-	category := external_api.Category{}
+	site := &external_api.Site{}
+	category := &external_api.Category{}
 
 	cE := make(chan apierrors.ApiError)
 	c := make(chan myml.JsonSuma)
@@ -28,8 +29,16 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 	}
 
 	go func() {
-		respuesta=<-c
-		respuesta=<-c
+		respuestaTemp=<-c
+		if respuestaTemp.Site != nil {
+			respuesta.Site=respuestaTemp.Site
+			respuestaTemp=<-c
+			respuesta.Category=respuestaTemp.Category
+		} else {
+			respuesta.Category=respuestaTemp.Category
+			respuestaTemp=<-c
+			respuesta.Site=respuestaTemp.Site
+		}
 		respuesta.User=user
 		cOk<-true
 	}()
