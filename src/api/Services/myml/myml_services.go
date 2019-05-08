@@ -10,11 +10,12 @@ import (
 
 func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiError) {
 
+	var respuestaTemp myml.JsonSuma
 	var respuesta myml.JsonSuma
 	var wg sync.WaitGroup
 
-	site := external_api.Site{}
-	category := external_api.Category{}
+	site := &external_api.Site{}
+	category := &external_api.Category{}
 
 	cE := make(chan *apierrors.ApiError)
 	c := make(chan myml.JsonSuma)
@@ -30,10 +31,20 @@ func GetRespuestaFromApiReceiver(userID int64) (*myml.JsonSuma, *apierrors.ApiEr
 
 	wg.Add(3)
 	go func() {
-		respuesta=<-c
-		wg.Done()
-		respuesta=<-c
-		wg.Done()
+		respuestaTemp=<-c
+		if respuestaTemp.Site != nil {
+			respuesta.Site=respuestaTemp.Site
+			wg.Done()
+			respuestaTemp=<-c
+			respuesta.Category=respuestaTemp.Category
+			wg.Done()
+		} else {
+			respuesta.Category=respuestaTemp.Category
+			wg.Done()
+			respuestaTemp=<-c
+			respuesta.Site=respuestaTemp.Site
+			wg.Done()
+		}
 		respuesta.User=user
 		err = <-cE
 		wg.Done()
