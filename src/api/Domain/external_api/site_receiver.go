@@ -22,7 +22,7 @@ func (site *Site) Get(siteID string, c chan apierrors.ApiError) {
 	}
 
 	data, err = ioutil.ReadAll(response.Body)
-	println(string(data))
+
 	if err != nil {
 		c <- apierrors.ApiError{
 			Message: err.Error(),

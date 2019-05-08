@@ -9,7 +9,7 @@ import (
 )
 
 const (
-	url = "https://api.mercadolibre.com/users/"
+	url = "http://localhost:8081/users/"
 )
 
 func (user *User) Get() *apierrors.ApiError {

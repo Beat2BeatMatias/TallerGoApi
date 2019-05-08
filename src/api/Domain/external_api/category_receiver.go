@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-const urlSites = "https://api.mercadolibre.com/sites/"
+const urlSites = "http://localhost:8081/sites/"
 
 func (category *Category) Get(siteID string, c chan apierrors.ApiError){
 	var data []byte
@@ -23,7 +23,7 @@ func (category *Category) Get(siteID string, c chan apierrors.ApiError){
 	}
 
 	data, err = ioutil.ReadAll(response.Body)
-	println(string(data))
+
 	if err != nil {
 		c<-apierrors.ApiError{
 			Message: err.Error(),
